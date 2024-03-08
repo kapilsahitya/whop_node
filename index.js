@@ -70,7 +70,6 @@ app.get('/', (req, res) => {
       // console.warn('----------------');
       // console.warn(req.params.folder);
       // console.warn("====================");
-
       const upload = multer({ storage: getStorage(folder) });
       upload.single('image')(req, res, (err) => {
         if (err) {
