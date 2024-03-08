@@ -33,25 +33,13 @@ module.exports = app => {
     app.post("/api/users/updaterole/:id", userscontrol.updaterole);
     app.get("/api/users/deleterole/:id", userscontrol.deleterole);
 
-
     app.post("/api/users/upload", userscontrol.uploadit);
 
-
-
-
-
- 
+    app.get("/api/users/getlatestuser", userscontrol.getlatestuser);
 
     //app.get("/api/users/getall",token, userscontrol.getAll);
     //app.get("/api/users/getall", userscontrol.getAll);
     //app.post("/api/users/create", userscontrol.create);
     //app.get("/api/users/profile/:id",token, userscontrol.profile);  // verifing with jwt   
-    //app.get("/api/users/profile/:id", userscontrol.profile);  // verifing with jwt  
-
-  
-
-
-
-  
-  
+    //app.get("/api/users/profile/:id", userscontrol.profile);  // verifing with jwt    
 };

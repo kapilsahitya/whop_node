@@ -1,4 +1,5 @@
 const db = require("../config/db.config"); 
+const pool = require("../config/db.config");
 const enc = require("../utils/myencrypt");  
 const helper = require("../utils/myfunction");  
 var jwt = require("jsonwebtoken");  
@@ -15,9 +16,6 @@ var paramz = {
           
   };
 
-
-
-
 var c_outz = ' `id`, `refId`, `user_id`, `product_id`, `quantity`';
 var c_paramz = {
           tableName:"cart",
@@ -26,10 +24,6 @@ var c_paramz = {
           input_columns: [ 'id', 'refId',  'user_id', 'product_id', 'quantity'],
           required_input_columns:['product_id','quantity'],          
 };
-
-
-
-
   //////////////////////CART APIS==================
 
 
@@ -53,10 +47,6 @@ function doQuery(conn,sql,args='') {
 
                      FROM cart WHERE  user_id="${uid}"`);
        var list = cartdata.results;
-
-       
-
-
        list.map((val, key) => {                   
                     var ddt = {};
                     ddt.refId = helper.generateRandomString(6);
@@ -71,43 +61,20 @@ function doQuery(conn,sql,args='') {
           });
 
         let crt_clr = await doQuery (db, `delete from  cart WHERE user_id="${uid}"`);
-
-
-
-
-
           res.json({
                     status: 1,
                     message: "Data Proceed Successfully.",
                             
-          }); 
-
-        
-      
-
-      
-
-
- 
-           
-                   
+          });                   
   };
 
   exports.cart = async  (req, res) => { 
-
       var uid = req.userId;
-
       var subqry = `
-
                      ,  (SELECT name FROM product_mst WHERE id = cart.product_id) as prod_name  
-                     ,  (SELECT base_price FROM product_mst WHERE id = cart.product_id) as price  
-                      
-                      
+                     ,  (SELECT base_price FROM product_mst WHERE id = cart.product_id) as price    
                   `;
 
-
-            
-      
       const data = req.body;
       const typ = req.body.typ;
 
@@ -178,37 +145,51 @@ function doQuery(conn,sql,args='') {
                 });    
             }
           });
-      }
-
-       
-
-
-
-
-      
-
-                   
+      }               
   };
-
-
-
-
-
-
-
-
-
-
   //////////////////////PRODUCT APIS==================
   exports.getAll = async  (req, res) => { 
-            var p  = paramz;
-            var limit  = req.query.limit; 
-            p.where = '';            
-            p.is_single = ''; 
-            p.limit = limit;             
-            var out = await helper.getdata(p);
-            res.json(out);                  
+  
+            // var p  = paramz;
+            // var limit  = req.query.limit; 
+            // p.where = '';            
+            // p.is_single = ''; 
+            // p.limit = limit;             
+            // var out = await helper.getdata(p);
+            // res.json(out);  
+            // const qry = `select a.* , b.name as cat_name from product_mst a INNER JOIN category b on a.cat_id = b.id limit ${req.query.limit}`;
+            const qry = `select a.* , b.name as cat_name from product_mst a INNER JOIN category b on a.cat_id = b.id`;
+            pool.getConnection(function(err, connection) {
+              if(err)
+              {
+                throw err;
+              }
+              connection.query(qry, function(err, result){
+                if(err)
+                {
+                  res.json({ status: -1, message: "error occured", error: err });
+                }
+                else{
+                  if(result && result.length > 0)
+                  {
+                    res.json({
+                      status: 1,
+                      message: "Fetched data successfully",
+                      data: enc.encrypt_obj(result)
+                    });
+                  }
+                  else{
+                    res.json({
+                      status: 1,
+                      message: "Fetched data successfully",
+                      data: []
+                    });
+                  }
+                }
+              })
+            })                
   };
+  
   exports.getAllSeller = async  (req, res) => {
         let seller_id= req.userId;
 
@@ -224,6 +205,7 @@ function doQuery(conn,sql,args='') {
             var res={ status: 0, message: "Provide Seller Id" };
           }        
   };
+
   exports.getbycode = async (req, res) => {
       var code = req.params.code;
       paramz.where = ['prod_code= "'+code+'" '];
@@ -239,6 +221,7 @@ function doQuery(conn,sql,args='') {
       var out = await helper.getdata(paramz);
       res.json(out);
   };
+
   exports.get = async (req, res) => {
       var id = req.params.id;
       paramz.where = ['id='+id];
@@ -246,6 +229,7 @@ function doQuery(conn,sql,args='') {
       var out = await helper.getdata(paramz);
       res.json(out);
   };
+
   exports.create = async (req, res) => {
       const data = req.body;
       data.created_by = req.userId;
@@ -253,11 +237,13 @@ function doQuery(conn,sql,args='') {
       var out = await helper.adddata(paramz);
       res.json(out);
   };
+
   exports.delete = async (req, res) => {
       paramz.del_id = req.params.id;
       var out = await helper.deldata(paramz);
       res.json(out);
   };
+
   exports.update = (req, res) => {
       const data = req.body;
       const cId = req.params.id;
@@ -277,15 +263,6 @@ function doQuery(conn,sql,args='') {
             }
       });
   };
-
-   
-   
-
-
-
-
-
-
 
  // exports.getbycode = async  (req, res) => {
   //       let cod= req.params.cod;
